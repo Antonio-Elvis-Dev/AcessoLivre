@@ -5,7 +5,9 @@ App Mobile para quem tem problemas de locomoção.
 > **Mapeamento colaborativo de acessibilidade urbana com identidade nordestina.**
 > Projeto da disciplina de Tecnologias Sociais e Assistivas (Sistemas de Informação), com piloto em Arapiraca (AL), a partir do IFAL Campus Arapiraca.
 
-Este README descreve **como a aplicação será desenvolvida**: o problema, o escopo, a arquitetura, a stack, a organização do código, o cronograma e como rodar o projeto. O código ainda não existe; as seções de execução descrevem o que está planejado e serão atualizadas conforme a implementação avançar.
+Este README descreve **como a aplicação é desenvolvida**: o problema, o escopo, a arquitetura, a stack, a organização do código, o cronograma e como rodar o projeto.
+
+**Andamento:** o MVP está implementado: API (`apps/api`), app mobile (`apps/mobile`) e pacote compartilhado (`packages/shared`). Detalhes em [`apps/api/README.md`](apps/api/README.md) e [`apps/mobile/README.md`](apps/mobile/README.md).
 
 ---
 
@@ -26,7 +28,7 @@ Este README descreve **como a aplicação será desenvolvida**: o problema, o es
 13. [Privacidade e LGPD](#13-privacidade-e-lgpd)
 14. [Estrutura de pastas](#14-estrutura-de-pastas)
 15. [Metodologia e cronograma](#15-metodologia-e-cronograma)
-16. [Como rodar (planejado)](#16-como-rodar-planejado)
+16. [Como rodar](#16-como-rodar)
 17. [Testes e validação](#17-testes-e-validação)
 18. [Fluxo de trabalho no Git](#18-fluxo-de-trabalho-no-git)
 19. [Equipe](#19-equipe)
@@ -338,9 +340,7 @@ O projeto combina **desenho participativo** com **desenvolvimento ágil** (Scrum
 - Correções rápidas a partir dos resultados.
 - **Entrega final (06/12):** app, código neste repositório, relatório de validação em `docs/validacao/` e apresentação.
 
-## 16. Como rodar (planejado)
-
-> Esta seção será confirmada quando o código for criado.
+## 16. Como rodar
 
 **Pré-requisitos:** Node.js LTS, pnpm, Docker e o app **Expo Go** no celular (ou um emulador Android/iOS).
 
@@ -352,22 +352,29 @@ cd AcessoLivre
 # 2. Instalar dependências
 pnpm install
 
-# 3. Configurar variáveis de ambiente
-cp .env.example .env
-# Editar DATABASE_URL, JWT_SECRET e EXPO_PUBLIC_API_URL (IP da máquina na rede local)
+# 3. Configurar variáveis de ambiente da API
+cp .env.example apps/api/.env
+# Editar JWT_SECRET (e DATABASE_URL, se não usar o Docker abaixo)
 
-# 4. Subir o banco (PostgreSQL + PostGIS)
+# 4. Subir o banco (PostgreSQL + PostGIS; cria também o banco de testes)
 docker compose up -d
 
 # 5. Criar as tabelas e popular dados iniciais
-pnpm --filter api prisma migrate dev
-pnpm --filter api prisma db seed
+pnpm api db:deploy
+pnpm api db:seed        # categorias, perguntas e locais de demonstração
+pnpm api osm:import     # opcional: locais reais de Arapiraca vindos do OpenStreetMap
 
 # 6. Iniciar a API (http://localhost:3333, docs em /docs)
-pnpm --filter api dev
+pnpm api dev
 
-# 7. Iniciar o app e ler o QR code com o Expo Go
-pnpm --filter mobile start
+# 7. Iniciar o app (em outro terminal) e ler o QR code com o Expo Go
+cp apps/mobile/.env.example apps/mobile/.env   # coloque o IP da sua máquina
+pnpm mobile start
+
+# 8. Rodar os testes
+pnpm api test
+pnpm --filter @acessolivre/shared test
+pnpm mobile test
 ```
 
 ## 17. Testes e validação

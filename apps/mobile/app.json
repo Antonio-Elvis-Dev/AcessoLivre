@@ -1,0 +1,56 @@
+{
+  "expo": {
+    "name": "AcessoLivre",
+    "slug": "acessolivre",
+    "version": "0.1.0",
+    "scheme": "acessolivre",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "br.edu.ifal.acessolivre"
+    },
+    "android": {
+      "package": "br.edu.ifal.acessolivre",
+      "adaptiveIcon": {
+        "backgroundColor": "#FFF8EC",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "O AcessoLivre usa sua localização só no seu celular, para mostrar o mapa perto de você. Ela não é enviada nem guardada."
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "O AcessoLivre precisa acessar suas fotos para você anexar imagens da acessibilidade do local.",
+          "cameraPermission": "O AcessoLivre usa a câmera para você fotografar rampas, portas, banheiros e placas do local."
+        }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "backgroundColor": "#FFF8EC"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}

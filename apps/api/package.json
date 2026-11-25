@@ -1,0 +1,48 @@
+{
+  "name": "@acessolivre/api",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch --env-file-if-exists=.env src/server.ts",
+    "build": "tsup",
+    "start": "node --env-file-if-exists=.env dist/server.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "prisma": "prisma",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "db:seed": "prisma db seed",
+    "db:recalc": "tsx --env-file-if-exists=.env scripts/recalculate-seals.ts",
+    "osm:import": "tsx --env-file-if-exists=.env scripts/import-osm.ts"
+  },
+  "prisma": {
+    "seed": "tsx --env-file-if-exists=.env prisma/seed.ts"
+  },
+  "dependencies": {
+    "@acessolivre/shared": "workspace:*",
+    "@fastify/cors": "^11.1.0",
+    "@fastify/helmet": "^13.0.2",
+    "@fastify/jwt": "^10.0.0",
+    "@fastify/multipart": "^9.2.1",
+    "@fastify/rate-limit": "^10.3.0",
+    "@fastify/static": "^8.3.0",
+    "@fastify/swagger": "^9.5.2",
+    "@fastify/swagger-ui": "^5.2.3",
+    "@prisma/client": "^6.19.0",
+    "bcryptjs": "^3.0.2",
+    "fastify": "^5.6.1",
+    "fastify-plugin": "^6.0.1",
+    "fastify-type-provider-zod": "^6.1.0",
+    "zod": "^4.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^22.18.0",
+    "prisma": "^6.19.0",
+    "tsup": "^8.5.0",
+    "tsx": "^4.20.6",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.4"
+  }
+}
