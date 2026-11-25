@@ -1,0 +1,149 @@
+// Modelo de dados do AcessoLivre (README, seção 8).
+
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  url        = env("DATABASE_URL")
+  extensions = [postgis]
+}
+
+model User {
+  id              String           @id @default(uuid()) @db.Uuid
+  name            String
+  email           String           @unique
+  passwordHash    String           @map("password_hash")
+  termsAcceptedAt DateTime         @map("terms_accepted_at")
+  termsVersion    String           @map("terms_version")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+  places          Place[]
+  evaluations     Evaluation[]
+  votes           EvaluationVote[]
+
+  @@map("users")
+}
+
+model Place {
+  id               String                                 @id @default(uuid()) @db.Uuid
+  name             String
+  type             String
+  address          String?
+  description      String?
+  osmId            String?                                @unique @map("osm_id")
+  // Ponto WGS84. Lido e gravado com SQL bruto (ST_MakePoint, ST_X, ST_Y).
+  location         Unsupported("geography(Point, 4326)")
+  createdById      String?                                @map("created_by") @db.Uuid
+  createdBy        User?                                  @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  // Cache do selo, recalculado a cada avaliação ou voto (lib/seal-service.ts).
+  approval         Float?
+  seal             String                                 @default("poucas_avaliacoes")
+  evaluationCount  Int                                    @default(0) @map("evaluation_count")
+  categoryApproval Json                                   @default("{}") @map("category_approval")
+  createdAt        DateTime                               @default(now()) @map("created_at")
+  updatedAt        DateTime                               @updatedAt @map("updated_at")
+  evaluations      Evaluation[]
+
+  @@index([location], type: Gist)
+  @@index([seal])
+  @@map("places")
+}
+
+model Category {
+  id          String     @id @default(uuid()) @db.Uuid
+  slug        String     @unique
+  name        String
+  shortName   String     @map("short_name")
+  description String
+  order       Int        @default(0)
+  questions   Question[]
+
+  @@map("categories")
+}
+
+model Question {
+  id         String   @id @default(uuid()) @db.Uuid
+  key        String   @unique
+  categoryId String   @map("category_id") @db.Uuid
+  category   Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  text       String
+  help       String?
+  order      Int      @default(0)
+  active     Boolean  @default(true)
+  answers    Answer[]
+
+  @@index([categoryId])
+  @@map("questions")
+}
+
+model Evaluation {
+  id        String           @id @default(uuid()) @db.Uuid
+  placeId   String           @map("place_id") @db.Uuid
+  place     Place            @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  userId    String           @map("user_id") @db.Uuid
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comment   String?
+  // Só a avaliação mais recente de cada usuário em cada local é vigente.
+  // Índice único parcial (place_id, user_id) WHERE is_current na migração.
+  isCurrent Boolean          @default(true) @map("is_current")
+  createdAt DateTime         @default(now()) @map("created_at")
+  answers   Answer[]
+  photos    Photo[]
+  votes     EvaluationVote[]
+
+  @@index([placeId, isCurrent])
+  @@index([userId])
+  @@map("evaluations")
+}
+
+enum AnswerValue {
+  sim
+  nao
+  nao_sei
+}
+
+model Answer {
+  id           String      @id @default(uuid()) @db.Uuid
+  evaluationId String      @map("evaluation_id") @db.Uuid
+  evaluation   Evaluation  @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  questionId   String      @map("question_id") @db.Uuid
+  question     Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  value        AnswerValue
+
+  @@unique([evaluationId, questionId])
+  @@map("answers")
+}
+
+model Photo {
+  id           String     @id @default(uuid()) @db.Uuid
+  evaluationId String     @map("evaluation_id") @db.Uuid
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  // Nome do arquivo dentro de UPLOAD_DIR
+  filename     String
+  createdAt    DateTime   @default(now()) @map("created_at")
+
+  @@index([evaluationId])
+  @@map("photos")
+}
+
+enum VoteType {
+  confirma
+  contesta
+}
+
+model EvaluationVote {
+  id           String     @id @default(uuid()) @db.Uuid
+  evaluationId String     @map("evaluation_id") @db.Uuid
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  userId       String     @map("user_id") @db.Uuid
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type         VoteType
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@unique([evaluationId, userId])
+  @@map("evaluation_votes")
+}

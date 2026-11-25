@@ -1,0 +1,19 @@
+{
+  "name": "acessolivre",
+  "private": true,
+  "description": "Mapeamento colaborativo de acessibilidade urbana com identidade nordestina.",
+  "packageManager": "pnpm@10.9.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "api": "pnpm --filter @acessolivre/api",
+    "mobile": "pnpm --filter @acessolivre/mobile",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "prettier": "^3.6.2"
+  }
+}

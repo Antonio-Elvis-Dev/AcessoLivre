@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+coverage/
+*.log
+.DS_Store
+
+# API
+apps/api/uploads/*
+!apps/api/uploads/.gitkeep
+
+# Expo
+.expo/
+apps/mobile/ios/
+apps/mobile/android/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+web-build/
+expo-env.d.ts
+apps/api/tests/.uploads/
