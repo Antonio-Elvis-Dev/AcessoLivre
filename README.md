@@ -7,7 +7,7 @@ App Mobile para quem tem problemas de locomoção.
 
 Este README descreve **como a aplicação é desenvolvida**: o problema, o escopo, a arquitetura, a stack, a organização do código, o cronograma e como rodar o projeto.
 
-**Andamento:** a API (`apps/api`) e o pacote compartilhado (`packages/shared`) estão implementados e testados. O app mobile (`apps/mobile`) vem em seguida. Detalhes da API em [`apps/api/README.md`](apps/api/README.md).
+**Andamento:** o MVP está implementado: API (`apps/api`), app mobile (`apps/mobile`) e pacote compartilhado (`packages/shared`). Detalhes em [`apps/api/README.md`](apps/api/README.md) e [`apps/mobile/README.md`](apps/mobile/README.md).
 
 ---
 
@@ -367,9 +367,14 @@ pnpm api osm:import     # opcional: locais reais de Arapiraca vindos do OpenStre
 # 6. Iniciar a API (http://localhost:3333, docs em /docs)
 pnpm api dev
 
-# 7. Rodar os testes
+# 7. Iniciar o app (em outro terminal) e ler o QR code com o Expo Go
+cp apps/mobile/.env.example apps/mobile/.env   # coloque o IP da sua máquina
+pnpm mobile start
+
+# 8. Rodar os testes
 pnpm api test
 pnpm --filter @acessolivre/shared test
+pnpm mobile test
 ```
 
 ## 17. Testes e validação

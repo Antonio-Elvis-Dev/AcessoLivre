@@ -43,3 +43,7 @@ jobs:
         run: pnpm --filter @acessolivre/api test
       - name: Build da API
         run: pnpm --filter @acessolivre/api build
+      - name: Tipos do app
+        run: pnpm --filter @acessolivre/mobile typecheck
+      - name: Testes do app (componentes e acessibilidade)
+        run: pnpm --filter @acessolivre/mobile test --ci
