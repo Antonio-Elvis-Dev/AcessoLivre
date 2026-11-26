@@ -156,7 +156,7 @@ Arquitetura cliente-servidor simples, em três camadas, pensada para uma pessoa 
 | Camada | Tecnologia | Por quê |
 |---|---|---|
 | Mobile | React Native com Expo (SDK atual), TypeScript, Expo Router | Multiplataforma (RNF01), desenvolvimento rápido |
-| Mapa | `react-native-maps` com camada de tiles do OpenStreetMap (ou MapLibre) | Mapa aberto, sem custo de licença |
+| Mapa | `react-native-maps` com o mapa nativo (Google/Apple) e locais do OpenStreetMap; tiles de provedor que permite apps, se preciso | A política de uso dos tiles públicos do OSM não permite apps |
 | Estado e dados | TanStack Query + Zustand | Cache de requisições e estado simples |
 | Back-end | Node.js (LTS), TypeScript, Fastify | API REST leve e rápida |
 | Validação | Zod | Mesmo esquema no app e na API |

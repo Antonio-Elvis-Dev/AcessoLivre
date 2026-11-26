@@ -18,7 +18,7 @@ export default function TermsScreen() {
         </Card>
       ))}
       <AppText variant="caption" muted>
-        Base legal: Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Mapa com dados ©
+        Base legal: Lei Geral de Proteção de Dados (Lei nº 13.709/2018). Locais com dados ©
         colaboradores do OpenStreetMap.
       </AppText>
     </Screen>

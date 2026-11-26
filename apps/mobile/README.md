@@ -41,5 +41,11 @@ A localização do usuário é usada **só no aparelho**: centraliza o mapa e ca
 
 ## Observações
 
-- O mapa usa os tiles públicos do OpenStreetMap, adequados para o piloto. Para publicar nas lojas, troque `OSM_TILES` em `app/(tabs)/index.tsx` por um provedor de tiles próprio ou contratado, conforme a política de uso do OSM.
-- No Android o fundo do Google Maps é desligado (`mapType="none"`) para mostrar só o OpenStreetMap.
+- O mapa base é o nativo do aparelho: Google Maps no Android e Apple Maps no iOS. No Expo Go funciona sem configurar nada. Para gerar um build próprio (EAS/APK) no Android, é preciso uma chave do Google Maps em `android.config.googleMaps.apiKey` no `app.json`.
+- **Não use os tiles públicos de `tile.openstreetmap.org`.** A [política de uso](https://operations.osmfoundation.org/policies/tiles/) dos servidores do OSM não permite apps como este, e os tiles aparecem como "403 Access blocked".
+- Se quiser um mapa com visual OpenStreetMap, use um provedor que permite apps (MapTiler, Stadia Maps, Carto etc.) e defina no `.env`:
+  ```
+  EXPO_PUBLIC_MAP_TILES_URL="https://api.maptiler.com/maps/streets-v2/256/{z}/{x}/{y}.png?key=SUA_CHAVE"
+  EXPO_PUBLIC_MAP_TILES_ATTRIBUTION="© MapTiler © colaboradores do OpenStreetMap"
+  ```
+- Os locais importados com `pnpm api osm:import` são dados do OpenStreetMap (licença ODbL), por isso o mapa mostra a atribuição aos colaboradores do OSM.
