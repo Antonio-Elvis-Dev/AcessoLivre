@@ -21,8 +21,19 @@ import { ARAPIRACA, bboxFromRegion } from '../../src/utils/geo'
 
 const INITIAL_REGION: Region = { ...ARAPIRACA, latitudeDelta: 0.03, longitudeDelta: 0.03 }
 
-/** Tiles do OpenStreetMap. Para produção, use um provedor de tiles próprio ou pago (política de uso do OSM). */
-const OSM_TILES = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+/**
+ * Mapa base. Por padrão usamos o mapa nativo do aparelho (Google Maps no Android,
+ * Apple Maps no iOS), que já vem com licença para apps.
+ *
+ * Não use os tiles públicos de tile.openstreetmap.org: a política de uso do OSM
+ * bloqueia apps (o mapa aparece como "403 Access blocked"). Para um visual OSM,
+ * use um provedor que permite apps (MapTiler, Stadia Maps, Carto...) definindo
+ * EXPO_PUBLIC_MAP_TILES_URL e EXPO_PUBLIC_MAP_TILES_ATTRIBUTION no .env.
+ */
+const CUSTOM_TILES_URL = process.env.EXPO_PUBLIC_MAP_TILES_URL?.trim() || undefined
+const CUSTOM_TILES_ATTRIBUTION = process.env.EXPO_PUBLIC_MAP_TILES_ATTRIBUTION?.trim()
+/** Os locais podem vir do OpenStreetMap (pnpm api osm:import), cujos dados exigem atribuição (ODbL). */
+const ATTRIBUTION = CUSTOM_TILES_ATTRIBUTION || 'Locais: © colaboradores do OpenStreetMap'
 
 export default function MapScreen() {
   const { colors } = useTheme()
@@ -108,14 +119,21 @@ export default function MapScreen() {
           style={styles.flex}
           initialRegion={INITIAL_REGION}
           onRegionChangeComplete={setRegion}
-          mapType={Platform.OS === 'android' ? 'none' : 'standard'}
+          mapType={CUSTOM_TILES_URL && Platform.OS === 'android' ? 'none' : 'standard'}
           showsUserLocation={!!location.coords}
           showsPointsOfInterests={false}
           toolbarEnabled={false}
           onPress={() => setSelected(null)}
           accessibilityLabel={`Mapa com ${places.length} locais na área visível`}
         >
-          <UrlTile urlTemplate={OSM_TILES} maximumZ={19} shouldReplaceMapContent tileSize={256} />
+          {CUSTOM_TILES_URL ? (
+            <UrlTile
+              urlTemplate={CUSTOM_TILES_URL}
+              maximumZ={19}
+              shouldReplaceMapContent
+              tileSize={256}
+            />
+          ) : null}
           {places.map((p) => (
             <Marker
               key={p.id}
@@ -143,7 +161,7 @@ export default function MapScreen() {
         </MapView>
 
         <View style={[styles.attribution, { backgroundColor: colors.surface }]} accessible={false}>
-          <AppText variant="caption">© OpenStreetMap</AppText>
+          <AppText variant="caption">{ATTRIBUTION}</AppText>
         </View>
 
         {isFetching ? (
