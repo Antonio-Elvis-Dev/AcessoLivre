@@ -17,18 +17,43 @@ import type {
 } from '@acessolivre/shared'
 import { useAuth } from '../store/auth'
 
+/** Endereços que só funcionam no próprio PC ou no emulador, nunca num celular de verdade. */
+const LOCAL_ONLY_HOSTS = ['localhost', '127.0.0.1', '10.0.2.2', '0.0.0.0']
+
+function hostOf(url: string): string {
+  return url.replace(/^\w+:\/\//, '').split(/[:/]/)[0] ?? ''
+}
+
 /**
- * Endereço da API. Defina EXPO_PUBLIC_API_URL em apps/mobile/.env.
- * Sem ele, tenta o IP da máquina que roda o Metro (funciona no Expo Go na mesma rede).
+ * Endereço da API.
+ * 1. Sem EXPO_PUBLIC_API_URL, usa o IP da máquina que roda o Metro (o mesmo que o Expo Go usa
+ *    para baixar o app), então funciona no celular na mesma rede sem configurar nada.
+ * 2. Com EXPO_PUBLIC_API_URL, usa o valor do .env. Se ele apontar para localhost ou 10.0.2.2
+ *    (endereços que o celular não alcança) e o Expo souber o IP da máquina, usa esse IP.
  */
-function resolveBaseUrl(): string {
-  const fromEnv = process.env.EXPO_PUBLIC_API_URL
-  if (fromEnv) return fromEnv.replace(/\/$/, '')
-  const host = Constants.expoConfig?.hostUri?.split(':')[0]
-  return host ? `http://${host}:3333` : 'http://localhost:3333'
+export function resolveBaseUrl(
+  fromEnv: string | undefined = process.env.EXPO_PUBLIC_API_URL,
+  hostUri: string | undefined = Constants.expoConfig?.hostUri,
+): string {
+  const metroHost = hostUri ? hostOf(hostUri) : undefined
+  const usableMetroHost = metroHost && !LOCAL_ONLY_HOSTS.includes(metroHost) ? metroHost : undefined
+  if (fromEnv) {
+    const url = fromEnv.trim().replace(/\/$/, '')
+    if (LOCAL_ONLY_HOSTS.includes(hostOf(url)) && usableMetroHost) {
+      const port = url.match(/:(\d+)(?:\/|$)/)?.[1] ?? '3333'
+      return `http://${usableMetroHost}:${port}`
+    }
+    return url
+  }
+  return usableMetroHost ? `http://${usableMetroHost}:3333` : 'http://localhost:3333'
 }
 
 export const API_URL = resolveBaseUrl()
+
+if (__DEV__) console.log(`[api] usando ${API_URL}`)
+
+/** Tempo máximo de espera por uma resposta antes de mostrar o erro de conexão. */
+const TIMEOUT_MS = 15000
 
 export class RequestError extends Error {
   constructor(
@@ -61,18 +86,26 @@ async function request<T>(
   if (options.body !== undefined) headers['Content-Type'] = 'application/json'
 
   let res: Response
+  const controller = new AbortController()
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS)
   try {
     res = await fetch(buildUrl(path, options.query), {
       method,
       headers,
       body: options.form ?? (options.body !== undefined ? JSON.stringify(options.body) : undefined),
+      signal: controller.signal,
     })
-  } catch {
+  } catch (e) {
+    if (__DEV__) console.warn(`[api] falha ao acessar ${API_URL}${path}:`, e)
+    // Em desenvolvimento, mostra o endereço tentado para facilitar o diagnóstico.
+    const hint = __DEV__ ? ` (endereço: ${API_URL})` : ''
     throw new RequestError(
       0,
-      'Sem conexão com o servidor. Confira sua internet e tente de novo.',
+      `Sem conexão com o servidor. Confira sua internet e tente de novo.${hint}`,
       'NETWORK',
     )
+  } finally {
+    clearTimeout(timer)
   }
 
   if (res.status === 204) return undefined as T
